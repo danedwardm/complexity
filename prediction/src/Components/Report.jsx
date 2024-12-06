@@ -11,6 +11,8 @@ const Report = ({ isVisible, onClose }) => {
   // Function to handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
+    const currentDateTime = new Date();
+    const formattedDateTime = currentDateTime.toISOString();
 
     // Here you can send the data to your server or perform other logic
     console.log("Report Details ", {
@@ -18,6 +20,7 @@ const Report = ({ isVisible, onClose }) => {
       timeFireStarted,
       timeFireOut,
       fireLevel,
+      dateTime: formattedDateTime,
     });
 
     // Clear the form inputs
