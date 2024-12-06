@@ -185,13 +185,13 @@ const Home = () => {
           <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-2 px-12 md:px-32 mt-8">
             <div className="w-full flex-col md:mr-5">
               <div className="font-bold">Fire Level</div>
-              <div className="bg-red-300 border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
+              <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
                 Fire Level Prediction
               </div>
             </div>
             <div className="w-full flex-col md:ml-5">
               <div className="font-bold">Fire Damage Cost</div>
-              <div className="bg-red-300 border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
+              <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
                 Fire Damage Cost Prediction
               </div>
             </div>
