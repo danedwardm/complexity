@@ -56,14 +56,15 @@ const Landing = () => {
 
   // Function to fetch the address based on latitude and longitude
   const fetchAddress = async (lat, lng) => {
-    const GEOCODE_API_URL = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleMapsApiKey}`;
-
+    const GEOCODE_API_URL = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+  
     try {
       const response = await axios.get(GEOCODE_API_URL);
       console.log(response.data); // Log the API response to inspect the structure
-      if (response.data.results && response.data.results.length > 0) {
-        const formattedAddress = response.data.results[0].formatted_address;
-        setAddress(formattedAddress);
+  
+      if (response.data && response.data.display_name) {
+        const formattedAddress = response.data.display_name; // Full address as a string
+        setAddress(formattedAddress); // Update state with the address
       } else {
         setAddress("Address not found");
       }
@@ -72,7 +73,7 @@ const Landing = () => {
       setAddress("Error fetching address");
     }
   };
-
+  
   // Fetch the weather data and address whenever location changes
   useEffect(() => {
     getCurrentLocation();
