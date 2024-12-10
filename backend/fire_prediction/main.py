@@ -3,7 +3,17 @@ from pydantic import BaseModel
 import joblib
 import pandas as pd
 import numpy as np
+from fastapi.middleware.cors import CORSMiddleware
+
+
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace "*" with specific domains for better security, e.g., ["http://localhost:5173"]
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods (POST, GET, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
 # Load the trained models (update the paths as necessary)
 rf_fire_level = joblib.load("best_rf_model_for_fire_level_latest_renamed.pkl")  # Replace with actual model path
