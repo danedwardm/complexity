@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import NavBar from "../Components/NavBar";
 import Report from "../Components/Report";
+import Captcha from "../Components/Captcha";
 
 const Landing = () => {
   const [showReport, setShowReport] = useState(false);
@@ -16,6 +17,10 @@ const Landing = () => {
   const [error, setError] = useState(null);
   const [fireLevel, setFireLevel] = useState(null);
   const [totalCost, setTotalCost] = useState(null);
+  const [showDisclaimer, setShowDisclaimer] = useState(true);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [showPrediction, setShowPrediction] = useState(false); // Control prediction visibility
+  const [showCaptchaModal, setShowCaptchaModal] = useState(false);
   const toggleReport = () => setShowReport(!showReport);
 
   // Fetch current location using geolocation
@@ -89,17 +94,6 @@ const Landing = () => {
 
   const handlePrediction = async () => {
     try {
-      // "Temperature": 30.5,
-      // "Wind": 15.0,
-      // "Precipitation": 10.0,
-      // "Barometer": 1012.0,
-      // "Weather_Haze": 1,
-      // "Passing_clouds": 0,
-      // "Scattered_clouds": 1,
-      // "Season_Dry": 0,
-      // "Season_Summer": 1,
-      // "Season_Wet": 0,
-      // "Weather_Overcast": 0
       if (!weatherData) {
         alert("Weather Data is Unavailable!");
         return;
@@ -152,10 +146,35 @@ const Landing = () => {
 
       setFireLevel(fire_level);
       setTotalCost(formattedValue);
+      // setShowPrediction(true);
     } catch (error) {
       console.error(error);
     }
   };
+
+  const handleModal = () => {
+    if (!captchaVerified) {
+      setShowCaptchaModal(true); // Show CAPTCHA modal when the user hasn't verified
+      return;
+    }
+    handlePrediction();
+  };
+
+  const handleCaptchaVerification = (isVerified) => {
+    setCaptchaVerified(isVerified);
+    setShowCaptchaModal(false); // Close CAPTCHA modal after verification
+
+    if (isVerified) {
+      setShowPrediction(true); // Show prediction once CAPTCHA is verified
+      handlePrediction(); // Run the prediction
+    }
+  };
+
+  // Close the disclaimer modal
+  const handleCloseDisclaimer = () => {
+    setShowDisclaimer(false);
+  };
+
   return (
     <div className="relative bg-white h-[100vh] w-[100vw] overflow-hidden">
       <div>
@@ -166,20 +185,61 @@ const Landing = () => {
         <div className="absolute h-[30vh] w-[30vh] bg-[#ffe3e3] rounded-[20px] rotate-45 top-96 left-2/3 z-10"></div>
       </div>
       <div className="relative h-[100vh] w-[100vw] flex flex-col z-20 overflow-auto">
+        {showDisclaimer && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-lg w-[90%] max-w-3xl">
+              <h2 className="text-3xl font-extrabold text-start mb-2">
+                Disclaimer
+              </h2>
+              <p className="text-base text-start mb-4">
+                <br />
+                {"\u00A0\u00A0\u00A0\u00A0"}The fire level and fire damage cost
+                predictions provided on this website are estimates based on
+                available data and predictive models. These predictions are not
+                guaranteed to be accurate and should not be considered as
+                definitive or final assessments. Actual fire conditions,
+                severity, and associated costs may vary based on numerous
+                factors, including but not limited to weather, location, and
+                unforeseen circumstances.
+                <br />
+                {"\u00A0\u00A0\u00A0\u00A0"}Please note that in order to
+                generate these predictions, the website requires your location.
+                The accuracy of the prediction may be influenced by the
+                information you provide.
+                <br />
+                {"\u00A0\u00A0\u00A0\u00A0"}Always consult with local
+                authorities, fire safety experts, or insurance providers for
+                more accurate and comprehensive assessments.
+              </p>
+              <button
+                onClick={handleCloseDisclaimer}
+                className="bg-red-500 text-white p-3 mt-5 rounded-md w-full"
+              >
+                Acknowledge
+              </button>
+            </div>
+          </div>
+        )}
         <NavBar />
-        <div className="flex flex-col items-center justify-start w-full h-full mt-[15vh]">
+        <div className="flex flex-col items-center justify-start w-full h-full mt-[14vh]">
           <div className="md:text-5xl text-4xl font-extrabold text-center italic text-black mb-2">
             How Much Will Fire Cost Your Neighborhood?
           </div>
-          <div className="w-full flex lg:text-xl text-xs font-semibold px-5 justify-center items-center text-center text-black mt-6">
+          <div className="w-full flex lg:text-xl text-xs font-semibold px-5 justify-center items-center text-center text-black mt-5">
             Predicting fire level and damage cost in your neighborhood
           </div>
 
           {/* Display Address */}
-          {address && (
+          {address ? (
             <div className="w-full text-center font-semibold mt-4">
               <div className="bg-white border border-y-[#d10606] w-full p-4 mt-3 text-center">
                 {address}
+              </div>
+            </div>
+          ) : (
+            <div className="w-full text-center font-semibold mt-4">
+              <div className="bg-white border border-y-[#d10606] w-full p-4 mt-3 text-center">
+                No address found. Turn on Location
               </div>
             </div>
           )}
@@ -187,7 +247,7 @@ const Landing = () => {
           {/* Display the weather data if available */}
           {loading && <div>Loading weather data...</div>}
           {error && <div>{error}</div>}
-          {weatherData && (
+          {weatherData ? (
             <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-2 px-12 md:px-32 mt-8">
               <div className="w-full flex-col md:mr-5">
                 <div className="font-bold">Temperature</div>
@@ -220,26 +280,44 @@ const Landing = () => {
                 </div>
               </div>
             </div>
+          ) : (
+            <div className="w-full text-center mt-8">
+              <div className="bg-white border border-[#d10606] w-full p-4 text-center font-semibold ">
+                Weather data is unavailable. Please try again later.
+              </div>
+            </div>
           )}
 
-          <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-2 px-12 md:px-32 mt-8">
-            <div className="w-full flex-col md:mr-5">
-              <div className="font-bold">Fire Level</div>
-              <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
-                {fireLevel ? fireLevel : "Fire Level Prediction"}
+          {/* Prediction Section */}
+          {showPrediction && (
+            <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-2 px-12 md:px-32 mt-8">
+              <div className="w-full flex-col md:mr-5">
+                <div className="font-bold">Possible Fire Level</div>
+                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
+                  {fireLevel || "Fire Level Prediction"}
+                </div>
+              </div>
+              <div className="w-full flex-col md:ml-5">
+                <div className="font-bold">Possible Fire Damage Cost</div>
+                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
+                  {totalCost || "Fire Damage Cost Prediction"}
+                </div>
               </div>
             </div>
-            <div className="w-full flex-col md:ml-5">
-              <div className="font-bold">Fire Damage Cost</div>
-              <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
-                {totalCost ? totalCost : "Fire Damage Cost Prediction"}
+          )}
+
+          {/* CAPTCHA Modal */}
+          {showCaptchaModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+              <div className="bg-white p-8 rounded-lg shadow-lg">
+                <Captcha onVerify={handleCaptchaVerification} />
               </div>
             </div>
-          </div>
-          <div className="flex flex-col md:flex-row justify-center items-center w-full h-auto mt-8 gap-6 md:gap-14 pb-10">
+          )}
+          <div className="flex flex-col md:flex-row justify-center items-center w-full h-auto mt-8 gap-6 md:gap-14 pb-5">
             <button
               className="w-auto flex flex-row items-center justify-center text-lg font-semibold rounded-lg px-12 py-3 text-white bg-[#d10606] border-2 border-[#d10606] hover:text-[#b00505] hover:border-[#b00505] hover:bg-white"
-              onClick={() => handlePrediction()}
+              onClick={() => handleModal()}
             >
               PREDICT
             </button>
