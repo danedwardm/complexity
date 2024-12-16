@@ -140,8 +140,8 @@ const Landing = () => {
         alert("Cannot predict at the moment.");
         return;
       }
-      const { fire_level, total } = res.data;
-      const intValue = Math.round(total);
+      const { fire_level, total_damage } = res.data;
+      const intValue = Math.round(total_damage);
       const formattedValue = intValue.toLocaleString();
 
       setFireLevel(fire_level);
@@ -153,20 +153,14 @@ const Landing = () => {
   };
 
   const handleModal = () => {
-    if (!captchaVerified) {
-      setShowCaptchaModal(true); // Show CAPTCHA modal when the user hasn't verified
-      return;
-    }
-    handlePrediction();
+      setShowCaptchaModal(true);
   };
 
   const handleCaptchaVerification = (isVerified) => {
-    setCaptchaVerified(isVerified);
-    setShowCaptchaModal(false); // Close CAPTCHA modal after verification
-
-    if (isVerified) {
-      setShowPrediction(true); // Show prediction once CAPTCHA is verified
-      handlePrediction(); // Run the prediction
+    setShowCaptchaModal(false); 
+    if (isVerified){
+      setShowPrediction(true);
+      handlePrediction();
     }
   };
 
