@@ -47,10 +47,10 @@ const NavBar = () => {
           <div className="flex justify-center items-center gap-2">
             <img src={logo} alt="/" className="w-[30px]" />
             <p className="hidden md:block font-semibold text-sm uppercase text-second">
-              Fire Prediction
+              Fire Cost Prediction
             </p>
             <p className="block md:hidden font-extrabold text-sm uppercase text-second">
-              CRISP
+              Fire Cost Prediction
             </p>
           </div>
           {/* Menu dropdown */}
@@ -60,20 +60,20 @@ const NavBar = () => {
                 Super Admin
               </p>
             </div> */}
-            <div
+            {/* <div
               className="flex items-center justify-center cursor-pointer px-2"
               onClick={() => setIsNotifsOpen(!toggleNotifsOpen)}
             >
               <MdNotificationsActive className="text-white text-3xl" />
               <div className="absolute top-0 right-12 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
-            </div>
-            <div
+            </div> */}
+            {/* <div
               className="rounded-full bg-white w-[35px] h-[35px] flex items-center justify-center cursor-pointer"
               onClick={() => setShowProfile(!showProfile)}
             >
               <FaUser className="text-[#d10606] text-lg" />
-            </div>
-            {toggleNotifsOpen && (
+            </div> */}
+            {/* {toggleNotifsOpen && (
               <div className="absolute top-full right-12 mt-2 bg-white shadow-lg rounded-lg border w-80">
                 <ul className="flex flex-col">
                   <li>
@@ -84,17 +84,17 @@ const NavBar = () => {
                   </li>
                 </ul>
               </div>
-            )}
-
+            )} */}
+            {/* 
             {showProfile && (
               <div className="absolute top-full right-0 mt-2 bg-white shadow-lg rounded-lg border w-auto">
                 <ul className="flex flex-col">
-                  {/* <li>
+                  <li>
                     <div className="block px-4 py-2 font-bold text-textSecond hover:text-main">
                       Profile
                     </div>
                     <hr className="h-px px-2 bg-gray-200 border-0 dark:bg-gray-200"></hr>
-                  </li> */}
+                  </li> 
                   <li>
                     <div
                       onClick={() => navigate("/login")} // Handle the navigation on click
@@ -113,7 +113,7 @@ const NavBar = () => {
                   </li>
                 </ul>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>

@@ -7,15 +7,15 @@ const Landing = () => {
   const [showReport, setShowReport] = useState(false);
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY; // Correctly reference your API key
   const [location, setLocation] = useState({
-    lat: 14.9767, // Default fallback coordinates (e.g., UCC South Campus)
-    lng: 120.9705,
+    // lat: 14.9767, // Default fallback coordinates (e.g., UCC South Campus)
+    // lng: 120.9705,
   });
   const [address, setAddress] = useState(""); // New state to store the address
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [fireLevel, setFireLevel] = useState(null)
-  const [totalCost, setTotalCost] = useState(null)
+  const [fireLevel, setFireLevel] = useState(null);
+  const [totalCost, setTotalCost] = useState(null);
   const toggleReport = () => setShowReport(!showReport);
 
   // Fetch current location using geolocation
@@ -44,7 +44,7 @@ const Landing = () => {
       setLoading(true);
       setError(null);
       const response = await axios.get(WEATHER_API_URL);
-      console.log(response.data); // Log the response to see the structure of the data
+      // console.log(response.data); // Log the response to see the structure of the data
       setWeatherData(response.data);
       setLoading(false);
     } catch (err) {
@@ -57,11 +57,11 @@ const Landing = () => {
   // Function to fetch the address based on latitude and longitude
   const fetchAddress = async (lat, lng) => {
     const GEOCODE_API_URL = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-  
+
     try {
       const response = await axios.get(GEOCODE_API_URL);
-      console.log(response.data); // Log the API response to inspect the structure
-  
+      // console.log(response.data); // Log the API response to inspect the structure
+
       if (response.data && response.data.display_name) {
         const formattedAddress = response.data.display_name; // Full address as a string
         setAddress(formattedAddress); // Update state with the address
@@ -73,7 +73,7 @@ const Landing = () => {
       setAddress("Error fetching address");
     }
   };
-  
+
   // Fetch the weather data and address whenever location changes
   useEffect(() => {
     getCurrentLocation();
@@ -85,74 +85,77 @@ const Landing = () => {
       fetchAddress(location.lat, location.lng); // Fetch address after location is set
     }
   }, [location]);
-  console.log("location", location);
+  // console.log("location", location);
 
   const handlePrediction = async () => {
-      try {
-         // "Temperature": 30.5,
-        // "Wind": 15.0,
-        // "Precipitation": 10.0,
-        // "Barometer": 1012.0,
-        // "Weather_Haze": 1,
-        // "Passing_clouds": 0,
-        // "Scattered_clouds": 1,
-        // "Season_Dry": 0,
-        // "Season_Summer": 1,
-        // "Season_Wet": 0,
-        // "Weather_Overcast": 0
-        if(!weatherData){
-          alert("Weather Data is Unavailable!")
-            return;
-        }
-        const temperature = weatherData.main.temp; // °C
-        const barometer = weatherData.main.pressure; // hPa
-        const wind = weatherData.wind.speed; // m/s
-        const cloudiness = weatherData.clouds?.all || 0; // % cloud cover
-    
-        const weatherDescription = weatherData.weather[0]?.description.toLowerCase();
-        const precipitation = weatherDescription.includes("rain") ? 1 : 0;
-    
-        // Example season logic (adjust as needed)
-        const currentMonth = new Date().getMonth() + 1; // Months are 0-indexed
-        const seasonSummer = currentMonth >= 3 && currentMonth <= 5 ? 1 : 0; 
-        const seasonWet = currentMonth >= 6 && currentMonth <= 11 ? 1 : 0; 
-        const seasonDry = currentMonth === 12 || currentMonth <= 2 ? 1 : 0;
-    
-        // Define weather-specific features
-        const weatherHaze = weatherDescription.includes("haze") ? 1 : 0;
-        const weatherOvercast = weatherDescription.includes("overcast clouds") ? 1 : 0;
-        const passingClouds = cloudiness >= 25 && cloudiness < 50 ? 1 : 0;
-        const scatteredClouds = cloudiness >= 50 && cloudiness < 75 ? 1 : 0;
-
-        const payload = {
-          Temperature: temperature,
-          Wind: wind,
-          Precipitation: precipitation,
-          Barometer: barometer,
-          Weather_Haze: weatherHaze,
-          Passing_clouds: passingClouds,
-          Scattered_clouds: scatteredClouds,
-          Season_Dry: seasonDry,
-          Season_Summer: seasonSummer,
-          Season_Wet: seasonWet,
-          Weather_Overcast: weatherOvercast,
-        };
-        console.log("Payload: ", payload)
-          const res = await axios.post('http://127.0.0.1:8000/predict', payload)
-          if(!res){
-            alert("Cannot predict at the moment.")
-            return;
-          }
-          const { fire_level, total } = res.data
-          const intValue = Math.round(total);
-          const formattedValue = intValue.toLocaleString(); 
-
-          setFireLevel(fire_level)
-          setTotalCost(formattedValue)
-      } catch (error) {
-          console.error(error)
+    try {
+      // "Temperature": 30.5,
+      // "Wind": 15.0,
+      // "Precipitation": 10.0,
+      // "Barometer": 1012.0,
+      // "Weather_Haze": 1,
+      // "Passing_clouds": 0,
+      // "Scattered_clouds": 1,
+      // "Season_Dry": 0,
+      // "Season_Summer": 1,
+      // "Season_Wet": 0,
+      // "Weather_Overcast": 0
+      if (!weatherData) {
+        alert("Weather Data is Unavailable!");
+        return;
       }
-  }
+      const temperature = weatherData.main.temp; // °C
+      const barometer = weatherData.main.pressure; // hPa
+      const wind = weatherData.wind.speed; // m/s
+      const cloudiness = weatherData.clouds?.all || 0; // % cloud cover
+
+      const weatherDescription =
+        weatherData.weather[0]?.description.toLowerCase();
+      const precipitation = weatherDescription.includes("rain") ? 1 : 0;
+
+      // Example season logic (adjust as needed)
+      const currentMonth = new Date().getMonth() + 1; // Months are 0-indexed
+      const seasonSummer = currentMonth >= 3 && currentMonth <= 5 ? 1 : 0;
+      const seasonWet = currentMonth >= 6 && currentMonth <= 11 ? 1 : 0;
+      const seasonDry = currentMonth === 12 || currentMonth <= 2 ? 1 : 0;
+
+      // Define weather-specific features
+      const weatherHaze = weatherDescription.includes("haze") ? 1 : 0;
+      const weatherOvercast = weatherDescription.includes("overcast clouds")
+        ? 1
+        : 0;
+      const passingClouds = cloudiness >= 25 && cloudiness < 50 ? 1 : 0;
+      const scatteredClouds = cloudiness >= 50 && cloudiness < 75 ? 1 : 0;
+
+      const payload = {
+        Temperature: temperature,
+        Wind: wind,
+        Precipitation: precipitation,
+        Barometer: barometer,
+        Weather_Haze: weatherHaze,
+        Passing_clouds: passingClouds,
+        Scattered_clouds: scatteredClouds,
+        Season_Dry: seasonDry,
+        Season_Summer: seasonSummer,
+        Season_Wet: seasonWet,
+        Weather_Overcast: weatherOvercast,
+      };
+      // console.log("Payload: ", payload);
+      const res = await axios.post("http://127.0.0.1:8000/predict", payload);
+      if (!res) {
+        alert("Cannot predict at the moment.");
+        return;
+      }
+      const { fire_level, total } = res.data;
+      const intValue = Math.round(total);
+      const formattedValue = intValue.toLocaleString();
+
+      setFireLevel(fire_level);
+      setTotalCost(formattedValue);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <div className="relative bg-white h-[100vh] w-[100vw] overflow-hidden">
       <div>
@@ -229,20 +232,23 @@ const Landing = () => {
             <div className="w-full flex-col md:ml-5">
               <div className="font-bold">Fire Damage Cost</div>
               <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
-                {totalCost ? totalCost :"Fire Damage Cost Prediction"}
+                {totalCost ? totalCost : "Fire Damage Cost Prediction"}
               </div>
             </div>
           </div>
           <div className="flex flex-col md:flex-row justify-center items-center w-full h-auto mt-8 gap-6 md:gap-14 pb-10">
-            <button className="w-auto flex flex-row items-center justify-center text-lg font-semibold rounded-lg px-12 py-3 text-white bg-[#d10606] border-2 border-[#d10606] hover:text-[#b00505] hover:border-[#b00505] hover:bg-white" onClick={() => handlePrediction()}>
+            <button
+              className="w-auto flex flex-row items-center justify-center text-lg font-semibold rounded-lg px-12 py-3 text-white bg-[#d10606] border-2 border-[#d10606] hover:text-[#b00505] hover:border-[#b00505] hover:bg-white"
+              onClick={() => handlePrediction()}
+            >
               PREDICT
             </button>
-            <button
+            {/* <button
               onClick={toggleReport}
               className="w-auto flex flex-row items-center justify-center text-lg font-semibold rounded-lg px-8 py-3 text-white bg-[#d10606] border-2 border-[#d10606] hover:text-[#b00505] hover:border-[#b00505] hover:bg-white"
             >
               REPORT FIRE
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
