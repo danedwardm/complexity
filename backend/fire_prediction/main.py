@@ -5,7 +5,7 @@ import numpy as np
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-
+import os
 # FastAPI app setup
 app = FastAPI()
 app.add_middleware(
@@ -22,13 +22,12 @@ rf_total = joblib.load("best_rf_model_for_total_latest.pkl")
 
 # PostgreSQL database configuration
 DB_CONFIG = {
-    "dbname": "fire_prediction_postgre",
-    "user": "fire_prediction_postgre_user",
-    "password": "ZMTVQZrOI69VOeH8jMHjvtQypwmsAgIi",
-    "host": "dpg-ctgj3vl2ng1s738j7d60-a.singapore-postgres.render.com",
-    "port": 5432,
+    "dbname": os.getenv('DB_NAME', 'fire_prediction_postgre'), 
+    "user": os.getenv('DB_USER', 'fire_prediction_postgre_user'), 
+    "password": os.getenv('DB_PASSWORD', 'ZMTVQZrOI69VOeH8jMHjvtQypwmsAgIi'), 
+    "host": os.getenv('DB_HOST', 'dpg-ctgj3vl2ng1s738j7d60-a.singapore-postgres.render.com'), 
+    "port": int(os.getenv('DB_PORT', 5432)),  # Default to 5432 if not set
 }
-
 # Function to get a new database connection
 def get_db_connection():
     try:
