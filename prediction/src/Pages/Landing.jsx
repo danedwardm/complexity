@@ -3,6 +3,9 @@ import axios from "axios";
 import NavBar from "../Components/NavBar";
 import Report from "../Components/Report";
 import Captcha from "../Components/Captcha";
+import { useAuth } from "../AuthProvider/AuthContext";
+import { useNavigate } from "react-router-dom";
+import api from "../api/axiosInstance";
 
 const Landing = () => {
   const [showReport, setShowReport] = useState(false);
@@ -22,8 +25,13 @@ const Landing = () => {
   const [showPrediction, setShowPrediction] = useState(false); // Control prediction visibility
   const [showCaptchaModal, setShowCaptchaModal] = useState(false);
   const toggleReport = () => setShowReport(!showReport);
-
-  // Fetch current location using geolocation
+  const {user, token, logOut} = useAuth()
+ const navigate = useNavigate()
+  useEffect(() => {
+    if(!token){
+      navigate('/login')
+    }
+  }, [token])
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -133,12 +141,18 @@ const Landing = () => {
         Season_Summer: seasonSummer,
         Season_Wet: seasonWet,
         Weather_Overcast: weatherOvercast,
+        location: address
       };
       // console.log("Payload: ", payload);
-      const res = await axios.post("http://127.0.0.1:8000/predict", payload);
+      const res = await api.post("/predict", payload);
       if (!res) {
-        alert("Cannot predict at the moment.");
+        alert("Session Expired!");
         return;
+      }
+      if(res.data.error){
+        alert("Token Expired! Login again.")
+        await logOut()
+
       }
       const { fire_level, total_damage } = res.data;
       const intValue = Math.round(total_damage);
@@ -294,7 +308,7 @@ const Landing = () => {
               <div className="w-full flex-col md:ml-5">
                 <div className="font-bold">Possible Fire Damage Cost</div>
                 <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
-                  {totalCost || "Fire Damage Cost Prediction"}
+                  {`₱${totalCost}` || "Loading..."}
                 </div>
               </div>
             </div>
@@ -320,7 +334,7 @@ const Landing = () => {
               className="w-auto flex flex-row items-center justify-center text-lg font-semibold rounded-lg px-8 py-3 text-white bg-[#d10606] border-2 border-[#d10606] hover:text-[#b00505] hover:border-[#b00505] hover:bg-white"
             >
               REPORT FIRE
-            </button> */}
+            </button>  */}
           </div>
         </div>
       </div>

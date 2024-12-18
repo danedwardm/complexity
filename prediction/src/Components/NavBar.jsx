@@ -6,13 +6,14 @@ import logo from "../assets/fireWhite.png";
 import { FaUser } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { MdNotificationsActive } from "react-icons/md";
+import { useAuth } from "../AuthProvider/AuthContext";
 
 const NavBar = () => {
   const [toggleNotifsOpen, setIsNotifsOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [notification, setNotification] = useState([]);
   const navigate = useNavigate();
-
+  const {token, user, logOut} = useAuth()
   useEffect(() => {
     // const fetchNotification = async () => {
     //   console.log("Fetching notifications");
@@ -55,11 +56,11 @@ const NavBar = () => {
           </div>
           {/* Menu dropdown */}
           <div className="relative flex gap-2">
-            {/* <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center">
               <p className="hidden md:block font-semibold text-sm uppercase text-second">
-                Super Admin
+                {user}
               </p>
-            </div> */}
+            </div>
             {/* <div
               className="flex items-center justify-center cursor-pointer px-2"
               onClick={() => setIsNotifsOpen(!toggleNotifsOpen)}
@@ -67,12 +68,12 @@ const NavBar = () => {
               <MdNotificationsActive className="text-white text-3xl" />
               <div className="absolute top-0 right-12 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
             </div> */}
-            {/* <div
+            <div
               className="rounded-full bg-white w-[35px] h-[35px] flex items-center justify-center cursor-pointer"
               onClick={() => setShowProfile(!showProfile)}
             >
               <FaUser className="text-[#d10606] text-lg" />
-            </div> */}
+            </div>
             {/* {toggleNotifsOpen && (
               <div className="absolute top-full right-12 mt-2 bg-white shadow-lg rounded-lg border w-80">
                 <ul className="flex flex-col">
@@ -85,27 +86,27 @@ const NavBar = () => {
                 </ul>
               </div>
             )} */}
-            {/* 
+            
             {showProfile && (
               <div className="absolute top-full right-0 mt-2 bg-white shadow-lg rounded-lg border w-auto">
                 <ul className="flex flex-col">
-                  <li>
+                  {/* <li>
                     <div className="block px-4 py-2 font-bold text-textSecond hover:text-main">
                       Profile
                     </div>
                     <hr className="h-px px-2 bg-gray-200 border-0 dark:bg-gray-200"></hr>
-                  </li> 
-                  <li>
+                  </li>  */}
+                 {!token &&  <li>
                     <div
-                      onClick={() => navigate("/login")} // Handle the navigation on click
+                      onClick={() => navigate('/login')} // Handle the navigation on click
                       className="block px-4 py-2 font-bold text-textSecond hover:text-[#d10606] cursor-pointer"
                     >
-                      Login
+                      Login 
                     </div>
-                  </li>
+                  </li>}
                   <li>
                     <div
-                      onClick={() => navigate("/")} // Handle the navigation on click
+                      onClick={() => logOut()} // Handle the navigation on click
                       className="block px-4 py-2 font-bold text-textSecond hover:text-[#d10606] cursor-pointer"
                     >
                       Logout
@@ -113,7 +114,7 @@ const NavBar = () => {
                   </li>
                 </ul>
               </div>
-            )} */}
+            )}
           </div>
         </div>
       </div>
