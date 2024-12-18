@@ -153,8 +153,8 @@ const Landing = () => {
       };
       // console.log("Payload: ", payload);
       const res = await api.post("/predict", payload);
-      const res1 = await api.get("/features");
-      console.log(res1);
+      // const res1 = await api.get("/features");
+      // console.log(res1);
       if (!res) {
         alert("Session Expired!");
         return;

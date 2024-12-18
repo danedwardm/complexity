@@ -47,7 +47,7 @@ const Results = () => {
       try {
         const res = await api.get("/features"); // Fetch features data
         setFeaturesData(res.data); // Store features data
-        console.log(featuresData); // Log to check the fetched data
+        // console.log(featuresData); // Log to check the fetched data
       } catch (error) {
         console.error("Fetching workers error: ", error);
       }
@@ -203,11 +203,11 @@ const Results = () => {
                           <p
                             className={`font-bold w-full truncate text-sm ${
                               data.Fire_Level
-                                ? "text-[#007a3f]"
-                                : "text-[#a10b00]"
+                                ? "text-[#a10b00]"
+                                : "text-[#007a3f]"
                             }`}
                           >
-                            {data.Fire_Level ? "LOW" : "HIGH"}
+                            {data.Fire_Level ? "HIGH" : "LOW"}
                           </p>
                         </td>
                         <td className="px-4 py-2 border-b">
