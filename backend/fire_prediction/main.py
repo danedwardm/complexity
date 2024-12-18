@@ -2,10 +2,14 @@ import psycopg2  # PostgreSQL connector
 import joblib
 import pandas as pd
 import numpy as np
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Depends, HTTPException, status
+from pydantic import BaseModel, EmailStr
 from fastapi.middleware.cors import CORSMiddleware
+from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import os
+from datetime import timedelta, datetime
+import jwt
 # FastAPI app setup
 app = FastAPI()
 app.add_middleware(
@@ -15,6 +19,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+SECRET_KEY = os.getenv("SECRET_KEY", "asdasrvqq231233evaweaswd")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
 
 # Load the trained models
 rf_fire_level = joblib.load("best_rf_model_for_fire_level_latest_renamed.pkl")
@@ -28,7 +42,18 @@ DB_CONFIG = {
     "host": os.getenv('DB_HOST', 'dpg-ctgj3vl2ng1s738j7d60-a.singapore-postgres.render.com'), 
     "port": int(os.getenv('DB_PORT', 5432)),  # Default to 5432 if not set
 }
-# Function to get a new database connection
+
+USER_TABLE = """
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    hashed_password TEXT NOT NULL,
+    address TEXT NOT NULL
+)
+"""
+
+
 def get_db_connection():
     try:
         conn = psycopg2.connect(**DB_CONFIG)
@@ -37,30 +62,54 @@ def get_db_connection():
     except psycopg2.Error as err:
         print(f"Error connecting to the database: {err}")
         return None, None
+    
+conn, cursor = get_db_connection()
+if cursor:
+    cursor.execute(USER_TABLE)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def hash_password(password:str):
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 def insert_data_to_db(cursor, conn, features, fire_level, total_damage):
     insert_query = """
     INSERT INTO features (Temperature, Wind, Precipitation, Barometer, Weather_Haze, Passing_clouds, Scattered_clouds,
-                          Season_Dry, Season_Summer, Season_Wet, Weather_Overcast, Fire_Level, Total_Damage)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                          Season_Dry, Season_Summer, Season_Wet, Weather_Overcast, Fire_Level, Total_Damage, location)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
     
-    # Convert numpy.float64 to native Python float
+    # Convert input to compatible types
     data_to_insert = (
-        float(features['Temperature']), float(features['Wind']), float(features['Precipitation']), float(features['Barometer']),
-        int(features['Weather_Haze']), int(features['Passing_clouds']), int(features['Scattered_clouds']), int(features['Season_Dry']),
-        int(features['Season_Summer']), int(features['Season_Wet']), int(features['Weather_Overcast']),
-        int(fire_level), float(total_damage)
+        float(features['Temperature']), float(features['Wind']), float(features['Precipitation']),
+        float(features['Barometer']), int(features['Weather_Haze']), int(features['Passing_clouds']),
+        int(features['Scattered_clouds']), int(features['Season_Dry']), int(features['Season_Summer']),
+        int(features['Season_Wet']), int(features['Weather_Overcast']), int(fire_level),
+        float(total_damage), features['location']
     )
 
     try:
         cursor.execute(insert_query, data_to_insert)
         conn.commit()
-        return True, "Data inserted successfully"  # Return both success and message
+        return True, "Data inserted successfully"
+    except psycopg2.IntegrityError as err:
+        conn.rollback()
+        return False, f"Integrity error: {err.pgerror}"
     except psycopg2.Error as err:
-        conn.rollback()  # Rollback the failed transaction
-        print(f"Error executing query: {err.pgerror}")
-        return False, f"Error executing query: {err.pgerror}"  # Return error message
+        conn.rollback()
+        return False, f"Database error: {err.pgerror}"
+
 
 
 
@@ -77,11 +126,74 @@ class InputData(BaseModel):
     Season_Summer: int
     Season_Wet: int
     Weather_Overcast: int
+    location: str
 
-# Prediction endpoint
-@app.post("/predict")
-def predict(data: InputData):
+class RegisterUser(BaseModel):
+    username: str
+    email: EmailStr
+    address: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    username: str
+
+@app.post("/register", status_code=status.HTTP_201_CREATED)
+def register(user: RegisterUser):
+    conn, cursor = get_db_connection()
+
+    if conn is None or cursor is None:
+        raise HTTPException(status_code=500, detail="Database connection is NONE")
+    
+    hashed_password = hash_password(user.password)
+
     try:
+      cursor.execute(
+          "INSERT INTO users (username, email, hashed_password, address) values (%s, %s, %s, %s)",
+          (user.username, user.email, hashed_password, user.address)
+      )
+      conn.commit()
+    except psycopg2.IntegrityError as e:
+      conn.rollback()
+      raise HTTPException(status_code=400, detail="User already exists")
+    finally:
+      cursor.close()
+      conn.close()
+
+    return {"message": "User registered successfully"}
+
+@app.post("/login", response_model=Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    conn, cursor = get_db_connection()
+    if conn is None or cursor is None:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    
+    try:
+        cursor.execute("SELECT id, hashed_password FROM users WHERE username = %s", (form_data.username,))
+        user = cursor.fetchone()
+        if not user or not verify_password(form_data.password, user[1]):
+            raise HTTPException(status_code=400, detail="Invalid credentials")
+    finally:
+        cursor.close()
+        conn.close()
+
+    access_token = create_access_token(data={"sub": form_data.username})
+    return {"access_token": access_token, "token_type": "bearer", "username": form_data.username}
+
+@app.post("/predict")
+def predict(data: InputData, token: str = Depends(oauth2_scheme)):
+    try:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get("sub")
+            if username is None:
+                raise HTTPException(status_code=401, detail="Invalid authentication token")
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token has expired")
+        except jwt.JWTError:
+            raise HTTPException(status_code=401, detail="Invalid authentication token")
+        
         input_dict = data.dict()  # Convert BaseModel to dictionary
 
         # Create DataFrame from input data

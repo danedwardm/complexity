@@ -5,6 +5,8 @@ import { LuUser, LuKey, LuEye, LuEyeOff, LuMapPin } from "react-icons/lu";
 // import { useAuth } from "../AuthContext/AuthContext";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/fire.png";
+import axios from "axios";
+import { useAuth } from "../AuthProvider/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,11 +21,12 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState("");
   const [isRegistering, setIsRegistering] = useState(false); // State to toggle between login and register
-
+  const { registerAction, loginAction } = useAuth()
   const isValidEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
   };
+  const navigate = useNavigate()
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible((prev) => !prev);
@@ -31,34 +34,52 @@ const Login = () => {
   const toggleConfirmPasswordVisibility = () => {
     setIsConfirmPasswordVisible((prev) => !prev);
   };
-  const navigate = useNavigate();
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsLoading(true);    // Validation for the email
 
-    // Validation for the email
-    if (!isValidEmail(email)) {
-      setErrors("Please enter a valid email address.");
-      setIsLoading(false);
-      setTimeout(() => setErrors(""), 3000);
-      return;
-    }
-
-    // Handle login or register logic based on isRegistering
     try {
       if (isRegistering) {
-        // Handle Register logic here
-        console.log("Registering user...");
-        // Your registration logic here
+        if (!isValidEmail(email)) {
+          setErrors("Please enter a valid email address.");
+          setIsLoading(false);
+          setTimeout(() => setErrors(""), 3000);
+          return;
+        }    
+        if (password !== confirmPassword) {
+          setErrors("Password does not match!");
+          setIsLoading(false);
+          setTimeout(() => setErrors(""), 3000);
+          return;
+        }
+        
+        const data = {
+          username: name,
+          email: email,
+          password: password,
+          address: address
+        }
+          const res = await registerAction(data)
+          if(!res){
+            alert("Registration failed!")
+            return
+            }
+          location.reload() 
       } else {
-        // Handle Login logic here
-        console.log("Logging in...");
-        // Your login logic here (using email and password)
-      }
-      navigate("/"); // After login/registration, navigate to the dashboard or any relevant page
+          const data = {
+            username: name,
+            password: password
+          }
+          const res = await loginAction(data)
+          if(!res){
+            alert("Login Failed!");
+            return;
+          }
+          navigate('/')
+      }    
     } catch (error) {
-      setErrorMessage("Operation failed. Please try again.");
+      setErrorMessage(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +133,7 @@ const Login = () => {
                 {isRegistering ? (
                   <>
                     <div className="w-full flex flex-col gap-2">
-                      <p className="text-xs font-semibold px-1">Name</p>
+                      <p className="text-xs font-semibold px-1">Username</p>
                       <div className="py-3 px-4 bg-[#f6edff] border border-[#f85454] rounded-md flex flex-row w-full gap-3 items-center justify-center">
                         <LuUser className="text-md text-[#d10606]" />
                         <input
@@ -217,18 +238,18 @@ const Login = () => {
                 ) : (
                   <>
                     <div className="w-full flex flex-col gap-2">
-                      <p className="text-xs font-semibold px-1">Email</p>
+                      <p className="text-xs font-semibold px-1">Username</p>
                       <div className="py-3 px-4 bg-[#f6edff] border border-[#f85454] rounded-md flex flex-row w-full gap-3 items-center justify-center">
                         <LuUser className="text-md text-[#d10606]" />
                         <input
                           type="text"
-                          placeholder="enter email"
+                          placeholder="enter username"
                           className="text-xs w-full outline-none bg-[#f6edff] truncate"
                           role="presentation"
                           autoComplete="off"
-                          onChange={(e) => setEmail(e.target.value)}
-                          id="email-input"
-                          value={email}
+                          onChange={(e) => setName(e.target.value)}
+                          id="name"
+                          value={name}
                         />
                       </div>
                     </div>
@@ -290,6 +311,7 @@ const Login = () => {
                     type="submit"
                     className="text-xs font-semibold text-white bg-[#d10606] px-6 py-2 rounded-md hover:bg-textSecond ease-in-out duration-700 flex items-center justify-center"
                     disabled={isLoading} // Disable the button while loading
+                    onClick={handleSubmit}
                   >
                     {isLoading ? (
                       <svg
