@@ -6,6 +6,12 @@ import Captcha from "../Components/Captcha";
 import { useAuth } from "../AuthProvider/AuthContext";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axiosInstance";
+import { TbTemperature } from "react-icons/tb";
+import { TiWeatherCloudy, TiWeatherWindy } from "react-icons/ti";
+import { WiHumidity } from "react-icons/wi";
+import { MdCompress, MdOutlineLocalFireDepartment } from "react-icons/md";
+import { FaPesoSign } from "react-icons/fa6";
+import { PiTarget } from "react-icons/pi";
 
 const Landing = () => {
   const [showReport, setShowReport] = useState(false);
@@ -21,17 +27,18 @@ const Landing = () => {
   const [fireLevel, setFireLevel] = useState(null);
   const [totalCost, setTotalCost] = useState(null);
   const [showDisclaimer, setShowDisclaimer] = useState(true);
+  const [isChecked, setIsChecked] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const [showPrediction, setShowPrediction] = useState(false); // Control prediction visibility
   const [showCaptchaModal, setShowCaptchaModal] = useState(false);
   const toggleReport = () => setShowReport(!showReport);
-  const {user, token, logOut} = useAuth()
- const navigate = useNavigate()
+  const { user, token, logOut } = useAuth();
+  const navigate = useNavigate();
   useEffect(() => {
-    if(!token){
-      navigate('/login')
+    if (!token) {
+      navigate("/login");
     }
-  }, [token])
+  }, [token]);
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -106,6 +113,7 @@ const Landing = () => {
         alert("Weather Data is Unavailable!");
         return;
       }
+      setLoading(true);
       const temperature = weatherData.main.temp; // °C
       const barometer = weatherData.main.pressure; // hPa
       const wind = weatherData.wind.speed; // m/s
@@ -141,18 +149,19 @@ const Landing = () => {
         Season_Summer: seasonSummer,
         Season_Wet: seasonWet,
         Weather_Overcast: weatherOvercast,
-        location: address
+        location: address,
       };
       // console.log("Payload: ", payload);
       const res = await api.post("/predict", payload);
+      const res1 = await api.get("/features");
+      console.log(res1);
       if (!res) {
         alert("Session Expired!");
         return;
       }
-      if(res.data.error){
-        alert("Token Expired! Login again.")
-        await logOut()
-
+      if (res.data.error) {
+        alert("Token Expired! Login again.");
+        await logOut();
       }
       const { fire_level, total_damage } = res.data;
       const intValue = Math.round(total_damage);
@@ -160,19 +169,21 @@ const Landing = () => {
 
       setFireLevel(fire_level);
       setTotalCost(formattedValue);
+      setLoading(false);
       // setShowPrediction(true);
     } catch (error) {
       console.error(error);
+      setLoading(false);
     }
   };
 
   const handleModal = () => {
-      setShowCaptchaModal(true);
+    setShowCaptchaModal(true);
   };
 
   const handleCaptchaVerification = (isVerified) => {
-    setShowCaptchaModal(false); 
-    if (isVerified){
+    setShowCaptchaModal(false);
+    if (isVerified) {
       setShowPrediction(true);
       handlePrediction();
     }
@@ -180,7 +191,11 @@ const Landing = () => {
 
   // Close the disclaimer modal
   const handleCloseDisclaimer = () => {
-    setShowDisclaimer(false);
+    if (isChecked) {
+      setShowDisclaimer(false);
+    } else {
+      alert("You must acknowledge the disclaimer to proceed.");
+    }
   };
 
   return (
@@ -194,34 +209,47 @@ const Landing = () => {
       </div>
       <div className="relative h-[100vh] w-[100vw] flex flex-col z-20 overflow-auto">
         {showDisclaimer && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-[90%] max-w-3xl">
-              <h2 className="text-3xl font-extrabold text-start mb-2">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 overflow-auto py-10">
+            <div className="bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-lg w-[90%] sm:w-[80%] md:w-[60%] max-w-3xl overflow-auto mt-24 md:mt-0">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-start mb-2">
                 Disclaimer
               </h2>
-              <p className="text-base text-start mb-4">
+              <p className="text-sm sm:text-base text-start mb-4">
                 <br />
-                {"\u00A0\u00A0\u00A0\u00A0"}The fire level and fire damage cost
-                predictions provided on this website are estimates based on
-                available data and predictive models. These predictions are not
-                guaranteed to be accurate and should not be considered as
-                definitive or final assessments. Actual fire conditions,
-                severity, and associated costs may vary based on numerous
-                factors, including but not limited to weather, location, and
-                unforeseen circumstances.
+                The fire level and fire damage cost predictions provided on this
+                website are estimates based on available data and predictive
+                models. These predictions are not guaranteed to be accurate and
+                should not be considered as definitive or final assessments.
+                Actual fire conditions, severity, and associated costs may vary
+                based on numerous factors, including but not limited to weather,
+                location, and unforeseen circumstances.
                 <br />
-                {"\u00A0\u00A0\u00A0\u00A0"}Please note that in order to
-                generate these predictions, the website requires your location.
-                The accuracy of the prediction may be influenced by the
-                information you provide.
+                Please note that in order to generate these predictions, the
+                website requires your location. The accuracy of the prediction
+                may be influenced by the information you provide.
                 <br />
-                {"\u00A0\u00A0\u00A0\u00A0"}Always consult with local
-                authorities, fire safety experts, or insurance providers for
-                more accurate and comprehensive assessments.
+                Always consult with local authorities, fire safety experts, or
+                insurance providers for more accurate and comprehensive
+                assessments.
               </p>
+              <div className="flex justify-center items-center mb-4">
+                <input
+                  type="checkbox"
+                  id="acknowledge"
+                  checked={isChecked}
+                  onChange={() => setIsChecked(!isChecked)}
+                  className="mr-2"
+                />
+                <label htmlFor="acknowledge" className="text-sm sm:text-base">
+                  I acknowledge the disclaimer.
+                </label>
+              </div>
               <button
                 onClick={handleCloseDisclaimer}
-                className="bg-red-500 text-white p-3 mt-5 rounded-md w-full"
+                disabled={!isChecked}
+                className={`p-3 mt-5 font-semibold rounded-md w-full ${
+                  isChecked ? "bg-red-500 text-white" : "bg-gray-400"
+                }`}
               >
                 Acknowledge
               </button>
@@ -256,35 +284,51 @@ const Landing = () => {
           {loading && <div>Loading weather data...</div>}
           {error && <div>{error}</div>}
           {weatherData ? (
-            <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-2 px-12 md:px-32 mt-8">
-              <div className="w-full flex-col md:mr-5">
+            <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-5 px-12 md:px-32 mt-8">
+              <div className="w-full flex-col">
                 <div className="font-bold">Temperature</div>
-                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
-                  {weatherData.main.temp}°C
+                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
+                  <TbTemperature className="text-xl" />
+                  <span className="flex-1 text-center">
+                    {weatherData.main.temp}°C
+                  </span>{" "}
                 </div>
               </div>
-              <div className="w-full flex-col md:ml-5">
+
+              <div className="w-full flex-col ">
                 <div className="font-bold">Weather</div>
-                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center capitalize font-semibold">
-                  {weatherData.weather[0].description}
+                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
+                  <TiWeatherCloudy className="text-xl" />
+                  <span className="flex-1 text-center">
+                    {weatherData.weather[0].description}
+                  </span>{" "}
                 </div>
               </div>
-              <div className="w-full flex-col md:ml-5">
+              <div className="w-full flex-col ">
                 <div className="font-bold">Humidity</div>
-                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center capitalize font-semibold">
-                  {weatherData.main.humidity}%
+                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
+                  <WiHumidity className="text-xl" />
+                  <span className="flex-1 text-center">
+                    {weatherData.main.humidity}%
+                  </span>{" "}
                 </div>
               </div>
-              <div className="w-full flex-col md:ml-5">
+              <div className="w-full flex-col ">
                 <div className="font-bold">Pressure</div>
-                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center capitalize font-semibold">
-                  {weatherData.main.pressure} hPa
+                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
+                  <MdCompress className="text-xl" />
+                  <span className="flex-1 text-center">
+                    {weatherData.main.pressure} hPa
+                  </span>{" "}
                 </div>
               </div>
-              <div className="w-full flex-col md:ml-5">
+              <div className="w-full flex-col ">
                 <div className="font-bold">Wind Speed</div>
-                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center capitalize font-semibold">
-                  {weatherData.wind.speed} m/s
+                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
+                  <TiWeatherWindy className="text-xl" />
+                  <span className="flex-1 text-center">
+                    {weatherData.wind.speed} m/s
+                  </span>{" "}
                 </div>
               </div>
             </div>
@@ -298,17 +342,30 @@ const Landing = () => {
 
           {/* Prediction Section */}
           {showPrediction && (
-            <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-2 px-12 md:px-32 mt-8">
-              <div className="w-full flex-col md:mr-5">
-                <div className="font-bold">Possible Fire Level</div>
-                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
-                  {fireLevel || "Fire Level Prediction"}
+            <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-5 px-12 md:px-32 mt-8">
+              <div className="w-full flex-col ">
+                <div className="font-bold">Accuracy</div>
+                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
+                  <PiTarget className="text-xl" />
+                  <span className="flex-1 text-center">{"90%"}</span>{" "}
                 </div>
               </div>
-              <div className="w-full flex-col md:ml-5">
+              <div className="w-full flex-col ">
+                <div className="font-bold">Possible Fire Level</div>
+                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
+                  <MdOutlineLocalFireDepartment className="text-xl" />
+                  <span className="flex-1 text-center">
+                    {fireLevel || "Loading..."}
+                  </span>{" "}
+                </div>
+              </div>
+              <div className="w-full flex-col">
                 <div className="font-bold">Possible Fire Damage Cost</div>
-                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold">
-                  {`₱${totalCost}` || "Loading..."}
+                <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
+                  <FaPesoSign className="text-sm" />
+                  <span className="flex-1 text-center">
+                    {totalCost || "Loading..."}
+                  </span>{" "}
                 </div>
               </div>
             </div>
@@ -326,15 +383,14 @@ const Landing = () => {
             <button
               className="w-auto flex flex-row items-center justify-center text-lg font-semibold rounded-lg px-12 py-3 text-white bg-[#d10606] border-2 border-[#d10606] hover:text-[#b00505] hover:border-[#b00505] hover:bg-white"
               onClick={() => handleModal()}
+              disabled={loading}
             >
-              PREDICT
+              {loading ? (
+                <div className="spinner-border animate-spin border-4 border-t-4 border-white w-5 h-5 rounded-full"></div>
+              ) : (
+                "PREDICT"
+              )}
             </button>
-            {/* <button
-              onClick={toggleReport}
-              className="w-auto flex flex-row items-center justify-center text-lg font-semibold rounded-lg px-8 py-3 text-white bg-[#d10606] border-2 border-[#d10606] hover:text-[#b00505] hover:border-[#b00505] hover:bg-white"
-            >
-              REPORT FIRE
-            </button>  */}
           </div>
         </div>
       </div>

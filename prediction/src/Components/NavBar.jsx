@@ -9,37 +9,9 @@ import { MdNotificationsActive } from "react-icons/md";
 import { useAuth } from "../AuthProvider/AuthContext";
 
 const NavBar = () => {
-  const [toggleNotifsOpen, setIsNotifsOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [notification, setNotification] = useState([]);
   const navigate = useNavigate();
-  const {token, user, logOut} = useAuth()
-  useEffect(() => {
-    // const fetchNotification = async () => {
-    //   console.log("Fetching notifications");
-    //   const notificationRef = collection(db, "notifications");
-    //   // Listen to changes in the 'notifications' collection
-    //   const unsubscribe = onSnapshot(
-    //     notificationRef,
-    //     (querySnapshot) => {
-    //       const notifications = querySnapshot.docs
-    //         .filter(
-    //           (doc) => doc.data() && doc.data().hasOwnProperty("for_superadmin")
-    //         )
-    //         .map((doc) => {
-    //           return { id: doc.id, ...doc.data() };
-    //         });
-    //       console.log("Fetching...", notifications);
-    //       setNotification(notifications);
-    //     },
-    //     (error) => {
-    //       console.error("Error fetching verification info:", error);
-    //     }
-    //   );
-    //   return () => unsubscribe();
-    // };
-    // fetchNotification();
-  }, []);
+  const { token, user, logOut } = useAuth();
 
   return (
     <>
@@ -61,49 +33,53 @@ const NavBar = () => {
                 {user}
               </p>
             </div>
-            {/* <div
-              className="flex items-center justify-center cursor-pointer px-2"
-              onClick={() => setIsNotifsOpen(!toggleNotifsOpen)}
-            >
-              <MdNotificationsActive className="text-white text-3xl" />
-              <div className="absolute top-0 right-12 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
-            </div> */}
             <div
               className="rounded-full bg-white w-[35px] h-[35px] flex items-center justify-center cursor-pointer"
               onClick={() => setShowProfile(!showProfile)}
             >
               <FaUser className="text-[#d10606] text-lg" />
             </div>
-            {/* {toggleNotifsOpen && (
-              <div className="absolute top-full right-12 mt-2 bg-white shadow-lg rounded-lg border w-80">
+
+            {showProfile && (
+              <div className="absolute top-full right-0 mt-2 bg-white shadow-lg rounded-lg border w-[150px]">
                 <ul className="flex flex-col">
                   <li>
-                    <div className="block px-4 py-2 font-bold text-red-600">
-                      Notifications
-                    </div>
-                    <hr className="h-px px-2 bg-gray-200 border-0 dark:bg-gray-200" />
-                  </li>
-                </ul>
-              </div>
-            )} */}
-            
-            {showProfile && (
-              <div className="absolute top-full right-0 mt-2 bg-white shadow-lg rounded-lg border w-auto">
-                <ul className="flex flex-col">
-                  {/* <li>
-                    <div className="block px-4 py-2 font-bold text-textSecond hover:text-main">
-                      Profile
+                    <div
+                      className="block px-4 py-2 font-bold text-textSecond hover:text-[#d10606] cursor-pointer"
+                      onClick={() => navigate("/")}
+                    >
+                      Home
                     </div>
                     <hr className="h-px px-2 bg-gray-200 border-0 dark:bg-gray-200"></hr>
-                  </li>  */}
-                 {!token &&  <li>
+                  </li>
+                  <li>
                     <div
-                      onClick={() => navigate('/login')} // Handle the navigation on click
                       className="block px-4 py-2 font-bold text-textSecond hover:text-[#d10606] cursor-pointer"
+                      onClick={() => navigate("/test")}
                     >
-                      Login 
+                      Test Page
                     </div>
-                  </li>}
+                    <hr className="h-px px-2 bg-gray-200 border-0 dark:bg-gray-200"></hr>
+                  </li>
+                  <li>
+                    <div
+                      className="block px-4 py-2 font-bold text-textSecond hover:text-[#d10606] cursor-pointer"
+                      onClick={() => navigate("/results")}
+                    >
+                      Results
+                    </div>
+                    <hr className="h-px px-2 bg-gray-200 border-0 dark:bg-gray-200"></hr>
+                  </li>
+                  {!token && (
+                    <li>
+                      <div
+                        onClick={() => navigate("/login")} // Handle the navigation on click
+                        className="block px-4 py-2 font-bold text-textSecond hover:text-[#d10606] cursor-pointer"
+                      >
+                        Login
+                      </div>
+                    </li>
+                  )}
                   <li>
                     <div
                       onClick={() => logOut()} // Handle the navigation on click

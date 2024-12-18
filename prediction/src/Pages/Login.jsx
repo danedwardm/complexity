@@ -21,12 +21,12 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState("");
   const [isRegistering, setIsRegistering] = useState(false); // State to toggle between login and register
-  const { registerAction, loginAction } = useAuth()
+  const { registerAction, loginAction } = useAuth();
   const isValidEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
   };
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible((prev) => !prev);
@@ -34,10 +34,10 @@ const Login = () => {
   const toggleConfirmPasswordVisibility = () => {
     setIsConfirmPasswordVisible((prev) => !prev);
   };
- 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);    // Validation for the email
+    setIsLoading(true); // Validation for the email
 
     try {
       if (isRegistering) {
@@ -46,38 +46,38 @@ const Login = () => {
           setIsLoading(false);
           setTimeout(() => setErrors(""), 3000);
           return;
-        }    
+        }
         if (password !== confirmPassword) {
           setErrors("Password does not match!");
           setIsLoading(false);
           setTimeout(() => setErrors(""), 3000);
           return;
         }
-        
+
         const data = {
           username: name,
           email: email,
           password: password,
-          address: address
+          address: address,
+        };
+        const res = await registerAction(data);
+        if (!res) {
+          alert("Registration failed!");
+          return;
         }
-          const res = await registerAction(data)
-          if(!res){
-            alert("Registration failed!")
-            return
-            }
-          location.reload() 
+        location.reload();
       } else {
-          const data = {
-            username: name,
-            password: password
-          }
-          const res = await loginAction(data)
-          if(!res){
-            alert("Login Failed!");
-            return;
-          }
-          navigate('/')
-      }    
+        const data = {
+          username: name,
+          password: password,
+        };
+        const res = await loginAction(data);
+        if (!res) {
+          alert("Login Failed!");
+          return;
+        }
+        navigate("/");
+      }
     } catch (error) {
       setErrorMessage(error.message);
     } finally {
@@ -138,7 +138,7 @@ const Login = () => {
                         <LuUser className="text-md text-[#d10606]" />
                         <input
                           type="text"
-                          placeholder="enter name"
+                          placeholder="enter username"
                           className="text-xs w-full outline-none bg-[#f6edff] truncate"
                           role="presentation"
                           autoComplete="off"

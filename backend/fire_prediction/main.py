@@ -247,3 +247,43 @@ def predict(data: InputData, token: str = Depends(oauth2_scheme)):
     except Exception as e:
         print(f"Error: {e}")
         return {"error": str(e)}
+    
+@app.get("/features")
+def get_features(token: str = Depends(oauth2_scheme)):
+    try:
+        # Verify JWT token
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication token")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
+    
+    # Get database connection
+    conn, cursor = get_db_connection()
+    if conn is None or cursor is None:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+
+    try:
+        # Fetch all records from the features table (remove LIMIT to show all data)
+        cursor.execute("SELECT * FROM features  ORDER BY report_date DESC")  
+        rows = cursor.fetchall()
+        
+        # Format the data into a dictionary list
+        feature_data = [
+            {
+                "Temperature": row[1], "Wind": row[2], "Precipitation": row[3], "Barometer": row[4],
+                "Weather_Haze": row[5], "Passing_clouds": row[6], "Scattered_clouds": row[7],
+                "Season_Dry": row[8], "Season_Summer": row[9], "Season_Wet": row[10], "Weather_Overcast": row[11],
+                "Fire_Level": row[12], "Total_Damage": row[13], "report_date": row[14], "location": row[15]
+            }
+            for row in rows
+        ]
+    finally:
+        cursor.close()
+        conn.close()
+
+    return feature_data
+
