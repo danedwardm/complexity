@@ -96,9 +96,6 @@ const Results = () => {
                       Temperature
                     </th>
                     <th className="px-4 py-2 font-semibold text-sm border-b border-[#d10606] text-start p-3 truncate">
-                      Humidity
-                    </th>
-                    <th className="px-4 py-2 font-semibold text-sm border-b border-[#d10606] text-start p-3 truncate">
                       Pressure
                     </th>
                     <th className="px-4 py-2 font-semibold text-sm border-b border-[#d10606] text-start p-3 truncate">
@@ -182,11 +179,6 @@ const Results = () => {
                         <td className="px-4 py-2 border-b">
                           <p className="w-full truncate text-sm">
                             {data.Temperature}°C,{" "}
-                          </p>
-                        </td>
-                        <td className="px-4 py-2 border-b">
-                          <p className="w-full truncate">
-                            {data.Precipitation}%,{" "}
                           </p>
                         </td>
                         <td className="px-4 py-2 border-b">

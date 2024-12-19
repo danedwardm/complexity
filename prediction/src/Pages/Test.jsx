@@ -19,16 +19,16 @@ const Home = () => {
     // lat: 14.9767, // Default fallback coordinates (e.g., UCC South Campus)
     // lng: 120.9705,
   });
-  const {logOut} = useAuth()
+  const { logOut } = useAuth();
   const [address, setAddress] = useState(""); // New state to store the address
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [temperature, setTemperature] = useState(0);
   const [pressure, setPressure] = useState(0);
-  const [humidity, setHumidity] = useState(0)
+  const [humidity, setHumidity] = useState(0);
   const [wind, setWind] = useState(0);
-  const [fireLevel, setFireLevel] = useState('');
+  const [fireLevel, setFireLevel] = useState("");
   const [totalCost, setTotalCost] = useState();
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -124,48 +124,55 @@ const Home = () => {
         alert("Weather Data is Unavailable!");
         return;
       }
-  
+
       console.log("Predicting...");
       setLoading(true);
       // Construct the payload
       const payload = {
-        Barometer: parseFloat(pressure),  // Ensure float type
+        Barometer: parseFloat(pressure), // Ensure float type
         Weather_Haze: selectedWeather === "Haze" ? 1 : 0,
         Weather_Overcast: selectedWeather === "Overcast" ? 1 : 0,
         Passing_clouds: selectedWeather === "Passing Clouds" ? 1 : 0,
-        Precipitation: parseFloat(humidity),  // Ensure float type
+        Precipitation: parseFloat(humidity), // Ensure float type
         Scattered_clouds: selectedWeather === "Scattered Clouds" ? 1 : 0,
         Season_Dry: selectedSeason === "Dry" ? 1 : 0,
         Season_Summer: selectedSeason === "Summer" ? 1 : 0,
         Season_Wet: selectedSeason === "Wet" ? 1 : 0,
-        Temperature: parseFloat(temperature),  // Ensure float type
-        Wind: parseFloat(wind),  // Ensure float type
+        Temperature: parseFloat(temperature), // Ensure float type
+        Wind: parseFloat(wind), // Ensure float type
         location: address,
       };
-      
+
       // Validate payload fields if necessary
-      if (!payload.location || !payload.Temperature || !payload.Wind) {
+      if (
+        !payload.location ||
+        !payload.Temperature ||
+        !payload.Wind ||
+        !payload.Barometer ||
+        !selectedSeason ||
+        !selectedWeather
+      ) {
         alert("Please fill in all required fields.");
         setLoading(false);
         return;
       }
-  
+
       const res = await api.post("/predict", payload);
-  
+
       if (!res) {
         alert("Session Expired!");
         return;
       }
-  
+
       if (res.data.error) {
         alert("Token Expired! Login again.");
         await logOut();
         return;
       }
-  
+
       const { fire_level, total_damage } = res.data;
       const formattedValue = Math.round(total_damage).toLocaleString();
-  
+
       setFireLevel(fire_level);
       setTotalCost(formattedValue);
     } catch (error) {
@@ -175,7 +182,7 @@ const Home = () => {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="relative bg-white h-[100vh] w-[100vw] overflow-hidden">
       <div>
@@ -311,42 +318,42 @@ const Home = () => {
           </div>
 
           <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-5 px-12 md:px-32 mt-6">
-            {/* <div className="w-full flex-col ">
-              <div className="font-bold">Accuracy</div>
-              <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
-                <PiTarget className="text-xl" />
-                <span className="flex-1 text-center">{"Loading..."}</span>
-                {"%"}
-              </div>
-            </div> */}
             <div className="w-full flex-col ">
               <div className="font-bold">Possible Fire Level</div>
               <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
                 <MdOutlineLocalFireDepartment className="text-xl" />
-                <span className="flex-1 text-center">{fireLevel ? fireLevel : "Loading..."}</span>{" "}
+                <span className="flex-1 text-center">
+                  {fireLevel ? fireLevel : "Possible Fire Level"}
+                </span>{" "}
               </div>
             </div>
             <div className="w-full flex-col">
               <div className="font-bold">Possible Fire Damage Cost</div>
               <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
                 <FaPesoSign className="text-sm" />
-                <span className="flex-1 text-center">{`${totalCost ? `₱${totalCost}` : "Loading..."}`}
+                <span className="flex-1 text-center">
+                  {`${
+                    totalCost ? `₱${totalCost}` : "Possible Fire Damage Cost"
+                  }`}
                 </span>
-
               </div>
             </div>
           </div>
           <div className="flex flex-col md:flex-row justify-center items-center w-full h-auto mt-6 gap-6 md:gap-14 pb-5">
-          <button
-            className={`w-auto flex flex-row items-center justify-center text-lg font-semibold rounded-lg px-12 py-3 
+            <button
+              className={`w-auto flex flex-row items-center justify-center text-lg font-semibold rounded-lg px-12 py-3 
               text-white bg-[#d10606] border-2 border-[#d10606] 
-              ${loading ? 'cursor-not-allowed opacity-50' : 'hover:text-[#b00505] hover:border-[#b00505] hover:bg-white'}`}
-            onClick={loading ? null : handlePrediction}
-            disabled={loading}
-            aria-label="Predict fire level and total damage"
-          >
-            {loading ? 'Loading...' : 'PREDICT'}
-          </button>
+              ${
+                loading
+                  ? "cursor-not-allowed opacity-50"
+                  : "hover:text-[#b00505] hover:border-[#b00505] hover:bg-white"
+              }`}
+              onClick={loading ? null : handlePrediction}
+              disabled={loading}
+              aria-label="Predict fire level and total damage"
+            >
+              {loading ? "Loading..." : "PREDICT"}
+            </button>
           </div>
         </div>
       </div>

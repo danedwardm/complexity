@@ -323,7 +323,7 @@ def get_features(token: str = Depends(oauth2_scheme)):
 
     try:
         # Fetch all records from the features table (remove LIMIT to show all data)
-        cursor.execute("SELECT * FROM features  ORDER BY report_date DESC")  
+        cursor.execute("SELECT * FROM features  ORDER BY report_date DESC LIMIT 100")  
         rows = cursor.fetchall()
         
         # Format the data into a dictionary list
