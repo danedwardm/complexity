@@ -19,17 +19,17 @@ const NavBar = () => {
         <div className="py-4 px-6 bg-[#d10606] flex justify-between items-center rounded-b-lg">
           <div className="flex justify-center items-center gap-2">
             <img src={logo} alt="/" className="w-[30px]" />
-            <p className="hidden md:block font-semibold text-sm uppercase text-second">
+            <p className="hidden md:block font-semibold text-sm uppercase text-white">
               Fire Cost Prediction
             </p>
-            <p className="block md:hidden font-extrabold text-sm uppercase text-second">
+            <p className="block md:hidden font-extrabold text-sm uppercase text-white">
               Fire Cost Prediction
             </p>
           </div>
           {/* Menu dropdown */}
           <div className="relative flex gap-2">
             <div className="flex items-center justify-center">
-              <p className="hidden md:block font-semibold text-sm uppercase text-second">
+              <p className="hidden md:block font-semibold text-sm uppercase text-white">
                 {user}
               </p>
             </div>
@@ -67,6 +67,15 @@ const NavBar = () => {
                       onClick={() => navigate("/results")}
                     >
                       Results
+                    </div>
+                    <hr className="h-px px-2 bg-gray-200 border-0 dark:bg-gray-200"></hr>
+                  </li>
+                  <li>
+                    <div
+                      className="block px-4 py-2 font-bold text-textSecond hover:text-[#d10606] cursor-pointer"
+                      onClick={() => navigate("/analysis")}
+                    >
+                      Analysis
                     </div>
                     <hr className="h-px px-2 bg-gray-200 border-0 dark:bg-gray-200"></hr>
                   </li>

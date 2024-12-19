@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import NavBar from "../Components/NavBar";
+import MapPickerModal from "../Components/MapPickerModal";
 
 import { TbTemperature } from "react-icons/tb";
 import { TiWeatherWindy } from "react-icons/ti";
 import { WiHumidity } from "react-icons/wi";
 import { MdCompress, MdOutlineLocalFireDepartment } from "react-icons/md";
 import { FaPesoSign } from "react-icons/fa6";
+import { FaMapMarkerAlt, FaInfoCircle } from "react-icons/fa";
 import { PiTarget } from "react-icons/pi";
 import api from "../api/axiosInstance";
 import { useAuth } from "../AuthProvider/AuthContext";
 
 const Home = () => {
-  const [showReport, setShowReport] = useState(false);
-  const [showReview, setShowReview] = useState(false);
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY; // Correctly reference your API key
   const [location, setLocation] = useState({
     // lat: 14.9767, // Default fallback coordinates (e.g., UCC South Campus)
@@ -24,12 +24,15 @@ const Home = () => {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [temperature, setTemperature] = useState(0);
-  const [pressure, setPressure] = useState(0);
-  const [humidity, setHumidity] = useState(0);
-  const [wind, setWind] = useState(0);
+  const [temperature, setTemperature] = useState(weatherData?.main?.temp || "");
+  const [humidity, setHumidity] = useState(weatherData?.main?.humidity || "");
+  const [pressure, setPressure] = useState(weatherData?.main?.pressure || "");
+  const [wind, setWind] = useState(weatherData?.wind?.speed || "");
   const [fireLevel, setFireLevel] = useState("");
   const [totalCost, setTotalCost] = useState();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -45,6 +48,28 @@ const Home = () => {
       console.error("Geolocation is not supported by this browser.");
     }
   };
+  // Dropdown values for Weather and Season
+  const weatherOptions = [
+    "Haze",
+    "Passing Clouds",
+    "Scattered Clouds",
+    "Overcast",
+  ];
+
+  const seasonOptions = ["Dry", "Summer", "Wet"];
+
+  const [selectedWeather, setSelectedWeather] = useState(
+    weatherData?.weather[0]?.description || ""
+  );
+  const [selectedSeason, setSelectedSeason] = useState("Dry");
+
+  useEffect(() => {
+    setTemperature(weatherData?.main?.temp || "");
+    setHumidity(weatherData?.main?.humidity || "");
+    setPressure(weatherData?.main?.pressure || "");
+    setWind(weatherData?.wind?.speed || "");
+    setSelectedWeather(weatherData?.weather[0]?.description || "");
+  }, [weatherData]);
 
   // Fetch weather data based on the current location
   const fetchWeatherData = async (lat, lon) => {
@@ -97,26 +122,8 @@ const Home = () => {
     }
   }, [location]);
 
-  // Dropdown values for Weather and Season
-  const weatherOptions = [
-    "Haze",
-    "Passing Clouds",
-    "Scattered Clouds",
-    "Overcast",
-  ];
-
-  const seasonOptions = ["Dry", "Summer", "Wet"];
-
-  const [selectedWeather, setSelectedWeather] = useState("");
-  const [selectedSeason, setSelectedSeason] = useState("");
-
-  const handleWeatherChange = (e) => {
-    setSelectedWeather(e.target.value);
-  };
-
-  const handleSeasonChange = (e) => {
-    setSelectedSeason(e.target.value);
-  };
+  const handleWeatherChange = (e) => setSelectedWeather(e.target.value);
+  const handleSeasonChange = (e) => setSelectedSeason(e.target.value);
 
   const handlePrediction = async () => {
     try {
@@ -183,6 +190,28 @@ const Home = () => {
     }
   };
 
+  // Handler to open the modal
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  // Handler to close the modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // Handle the location selection from the map modal
+  const handleLocationSelect = ({ lat, lng, address }) => {
+    setLocation({ lat, lng });
+    setAddress(address);
+    closeModal(); // Close modal after selecting the location
+  };
+
+  // Toggle the visibility of the summary when the icon is clicked
+  const handleInfoClick = () => {
+    setShowSummary(!showSummary);
+  };
+
   return (
     <div className="relative bg-white h-[100vh] w-[100vw] overflow-hidden">
       <div>
@@ -198,23 +227,67 @@ const Home = () => {
           <div className="md:text-5xl text-4xl font-extrabold text-center italic text-black mb-2">
             How Much Will Fire Cost Your Neighborhood?
           </div>
-          <div className="w-full flex lg:text-xl text-xs font-semibold px-5 justify-center items-center text-center text-black mt-6">
+          <div className="w-full flex lg:text-xl text-xs font-semibold px-5 justify-center items-center text-center text-black mt-5">
             Predicting fire level and damage cost in your neighborhood
-            {"\u00A0\u00A0"}
-            <strong>TEST PAGE</strong>
+            <FaInfoCircle
+              className="ml-2 text-slate-600 hover:text-black"
+              onClick={handleInfoClick}
+            />
           </div>
+          {showSummary && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+              onClick={() => setShowSummary(false)}
+            >
+              <div className="bg-white p-6 w-11/12 md:w-8/12 lg:w-6/12 rounded-lg shadow-lg">
+                <h3 className="font-semibold text-xl mb-3">Summary:</h3>
+                <p className="text-sm text-gray-700">
+                  The project focuses on the development of a web application
+                  that predicts potential fire damage costs based on weather
+                  conditions and historical data. By integrating real-time
+                  weather information with past fire incident records, the app
+                  provides estimations of potential damage from fires. The model
+                  uses machine learning to analyze patterns and factors that
+                  contribute to fire severity, offering a predictive tool that
+                  can assist in fire risk assessment and cost forecasting.
+                </p>
+
+                <h3 className="font-semibold text-xl mt-3">Why It Was Made:</h3>
+                <p className="text-sm text-gray-700">
+                  This web app was created to address the growing concern over
+                  fire-related damages and to improve preparedness. By
+                  leveraging weather data and historical fire records, the
+                  application provides a valuable resource for predicting fire
+                  damage, enabling better planning, resource allocation, and
+                  risk management for both individuals and local authorities. It
+                  aims to enhance safety measures, minimize financial losses,
+                  and help communities respond more effectively to fire risks.
+                </p>
+              </div>
+            </div>
+          )}
           {/* Display Address */}
           <div className="w-full text-center font-semibold mt-4">
             {address ? (
               <div className="w-full text-center font-semibold mt-4">
-                <div className="bg-white border border-y-[#d10606] w-full p-4 mt-3 text-center">
-                  {address}
+                <div className="bg-white border border-y-[#d10606] w-full p-4 mt-3 flex items-center justify-center">
+                  <span className="mr-2">{address}</span>
+                  <FaMapMarkerAlt
+                    className="text-lg text-[#d10606] hover:text-[#d10606]/50"
+                    onClick={openModal}
+                  />
                 </div>
               </div>
             ) : (
               <div className="w-full text-center font-semibold mt-4">
-                <div className="bg-white border border-y-[#d10606] w-full p-4 mt-3 text-center">
-                  No address found. Turn on Location
+                <div className="bg-white border border-y-[#d10606] w-full p-4 mt-3 flex items-center justify-center">
+                  <span className="mr-2">
+                    No address found. Turn on Location
+                  </span>
+                  <FaMapMarkerAlt
+                    className="text-lg text-[#d10606] hover:text-[#d10606]/50"
+                    onClick={openModal}
+                  />
                 </div>
               </div>
             )}
@@ -231,6 +304,7 @@ const Home = () => {
                   type="number"
                   className="flex-1 w-1/2 text-center bg-transparent border-none outline-none font-semibold"
                   placeholder="Temperature"
+                  value={temperature} // Use temperature state if available, otherwise fallback to weatherData.main.temp
                   onChange={(e) => setTemperature(e.target.value)}
                 />
                 {"°C"}
@@ -284,6 +358,7 @@ const Home = () => {
                   type="number"
                   className="flex-1 w-1/2 text-center bg-transparent border-none outline-none font-semibold"
                   placeholder="Humidity"
+                  value={humidity} // Use humidity state if available, otherwise fallback to weatherData.main.humidity
                   onChange={(e) => setHumidity(e.target.value)}
                 />
                 {"%"}
@@ -297,6 +372,7 @@ const Home = () => {
                   type="number"
                   className="flex-1 w-1/2 text-center bg-transparent border-none outline-none font-semibold"
                   placeholder="Pressure"
+                  value={pressure} // Use pressure state if available, otherwise fallback to weatherData.main.pressure
                   onChange={(e) => setPressure(e.target.value)}
                 />
                 {"hPa"}
@@ -310,6 +386,7 @@ const Home = () => {
                   type="number"
                   className="flex-1 w-1/2 text-center bg-transparent border-none outline-none font-semibold"
                   placeholder="Wind Speed"
+                  value={wind} // Use wind state if available, otherwise fallback to weatherData.wind.speed
                   onChange={(e) => setWind(e.target.value)}
                 />
                 {"m/s"}
@@ -355,6 +432,12 @@ const Home = () => {
               {loading ? "Loading..." : "PREDICT"}
             </button>
           </div>
+          {/* Map Picker Modal */}
+          <MapPickerModal
+            isOpen={isModalOpen}
+            onClose={closeModal}
+            onLocationSelect={handleLocationSelect}
+          />
         </div>
       </div>
     </div>

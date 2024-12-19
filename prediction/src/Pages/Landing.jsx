@@ -11,6 +11,7 @@ import { TiWeatherCloudy, TiWeatherWindy } from "react-icons/ti";
 import { WiHumidity } from "react-icons/wi";
 import { MdCompress, MdOutlineLocalFireDepartment } from "react-icons/md";
 import { FaPesoSign } from "react-icons/fa6";
+import { FaInfoCircle } from "react-icons/fa";
 import { PiTarget } from "react-icons/pi";
 
 const Landing = () => {
@@ -31,6 +32,7 @@ const Landing = () => {
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const [showPrediction, setShowPrediction] = useState(false); // Control prediction visibility
   const [showCaptchaModal, setShowCaptchaModal] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
 
   const toggleReport = () => setShowReport(!showReport);
   const { user, token, logOut } = useAuth();
@@ -114,44 +116,57 @@ const Landing = () => {
         alert("Weather Data is Unavailable!");
         return;
       }
-  
+
       setLoading(true);
-      
+
       // Extracting weather data
       const temperature = weatherData.main.temp; // °C
       const barometer = weatherData.main.pressure; // hPa
       const wind = weatherData.wind.speed; // m/s
       const cloudiness = weatherData.clouds?.all || 0; // % cloud cover
-  
-      const weatherDescription = weatherData.weather[0]?.description.toLowerCase();
+
+      const weatherDescription =
+        weatherData.weather[0]?.description.toLowerCase();
       const precipitation = weatherDescription.includes("rain") ? 1 : 0;
-  
+
       // Example season logic (adjust as needed)
       const currentMonth = new Date().getMonth() + 1; // Months are 0-indexed
       const seasonSummer = currentMonth >= 3 && currentMonth <= 5 ? 1 : 0;
       const seasonWet = currentMonth >= 6 && currentMonth <= 11 ? 1 : 0;
       const seasonDry = currentMonth === 12 || currentMonth <= 2 ? 1 : 0;
-  
+
       // Define weather-specific features
       const weatherHaze = weatherDescription.includes("haze") ? 1 : 0;
-      const weatherOvercast = weatherDescription.includes("overcast clouds") ? 1 : 0;
+      const weatherOvercast = weatherDescription.includes("overcast clouds")
+        ? 1
+        : 0;
       const passingClouds = cloudiness >= 25 && cloudiness < 50 ? 1 : 0;
       const scatteredClouds = cloudiness >= 50 && cloudiness < 75 ? 1 : 0;
-  
+
       // Weather and season options
-      const weatherOptions = ["haze", "passing clouds", "scattered clouds", "overcast clouds"];
+      const weatherOptions = [
+        "haze",
+        "passing clouds",
+        "scattered clouds",
+        "overcast clouds",
+      ];
       const seasonOptions = ["dry", "summer", "wet"];
-  
+
       // Default values for weather and season if not in options
-      const defaultWeather = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];  // Randomly select from options
-      const defaultSeason = "dry";  // You can choose another default season if needed
-  
+      const defaultWeather =
+        weatherOptions[Math.floor(Math.random() * weatherOptions.length)]; // Randomly select from options
+      const defaultSeason = "dry"; // You can choose another default season if needed
+
       // Check if weather is in the options; if not, set to default
-      const weatherCondition = weatherOptions.includes(weatherDescription) ? weatherDescription : defaultWeather;
-      
+      const weatherCondition = weatherOptions.includes(weatherDescription)
+        ? weatherDescription
+        : defaultWeather;
+
       // Check if season is in the options; if not, set to default
-      const seasonCondition = seasonOptions.includes(weatherDescription) ? weatherDescription : defaultSeason;
-  
+      const seasonCondition = seasonOptions.includes(weatherDescription)
+        ? weatherDescription
+        : defaultSeason;
+
       // Set default values for weather and season
       const payload = {
         Temperature: temperature,
@@ -168,8 +183,6 @@ const Landing = () => {
         location: address,
       };
 
-
-      
       // console.log("Payload: ", payload);
       const res = await api.post("/predict", payload);
       // const res1 = await api.get("/features");
@@ -215,6 +228,11 @@ const Landing = () => {
     } else {
       alert("You must acknowledge the disclaimer to proceed.");
     }
+  };
+
+  // Toggle the visibility of the summary when the icon is clicked
+  const handleInfoClick = () => {
+    setShowSummary(!showSummary);
   };
 
   return (
@@ -282,7 +300,43 @@ const Landing = () => {
           </div>
           <div className="w-full flex lg:text-xl text-xs font-semibold px-5 justify-center items-center text-center text-black mt-5">
             Predicting fire level and damage cost in your neighborhood
+            <FaInfoCircle
+              className="ml-2 text-slate-600 hover:text-black"
+              onClick={handleInfoClick}
+            />
           </div>
+          {showSummary && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+              onClick={() => setShowSummary(false)}
+            >
+              <div className="bg-white p-6 w-11/12 md:w-8/12 lg:w-6/12 rounded-lg shadow-lg">
+                <h3 className="font-semibold text-xl mb-3">Summary:</h3>
+                <p className="text-sm text-gray-700">
+                  The project focuses on the development of a web application
+                  that predicts potential fire damage costs based on weather
+                  conditions and historical data. By integrating real-time
+                  weather information with past fire incident records, the app
+                  provides estimations of potential damage from fires. The model
+                  uses machine learning to analyze patterns and factors that
+                  contribute to fire severity, offering a predictive tool that
+                  can assist in fire risk assessment and cost forecasting.
+                </p>
+
+                <h3 className="font-semibold text-xl mt-3">Why It Was Made:</h3>
+                <p className="text-sm text-gray-700">
+                  This web app was created to address the growing concern over
+                  fire-related damages and to improve preparedness. By
+                  leveraging weather data and historical fire records, the
+                  application provides a valuable resource for predicting fire
+                  damage, enabling better planning, resource allocation, and
+                  risk management for both individuals and local authorities. It
+                  aims to enhance safety measures, minimize financial losses,
+                  and help communities respond more effectively to fire risks.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Display Address */}
           {address ? (
@@ -362,7 +416,7 @@ const Landing = () => {
           {/* Prediction Section */}
           {showPrediction && (
             <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-5 px-12 md:px-32 mt-8">
-{/*               <div className="w-full flex-col ">
+              {/*               <div className="w-full flex-col ">
                 <div className="font-bold">Accuracy</div>
                 <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
                   <PiTarget className="text-xl" />

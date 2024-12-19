@@ -108,6 +108,9 @@ const Results = () => {
                       Fire Damage Cost
                     </th>
                     <th className="px-4 py-2 font-semibold text-sm border-b border-[#d10606] text-start p-3 truncate">
+                      # Fire Trucks
+                    </th>
+                    <th className="px-4 py-2 font-semibold text-sm border-b border-[#d10606] text-start p-3 truncate">
                       Date & Time
                     </th>
                   </tr>
@@ -206,6 +209,9 @@ const Results = () => {
                           <p className="w-full truncate text-sm">
                             Php {Math.round(data.Total_Damage).toLocaleString()}
                           </p>
+                        </td>
+                        <td className="px-4 py-2 border-b">
+                          <p className="w-full truncate text-sm">###</p>
                         </td>
                         <td className="px-4 py-2 border-b">
                           <p className="w-full truncate text-sm">{`${formattedDate} ${formattedTime}`}</p>

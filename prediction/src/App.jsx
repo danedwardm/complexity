@@ -5,6 +5,7 @@ import Landing from "./Pages/Landing";
 import Login from "./Pages/Login";
 import Test from "./Pages/Test";
 import Results from "./Pages/Results";
+import Analysis from "./Pages/Analysis";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/test" element={<Test />} />
         <Route path="/results" element={<Results />} />
+        <Route path="/analysis" element={<Analysis />} />
       </Routes>
     </BrowserRouter>
   );
