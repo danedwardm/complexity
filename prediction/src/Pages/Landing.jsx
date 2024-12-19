@@ -114,44 +114,62 @@ const Landing = () => {
         alert("Weather Data is Unavailable!");
         return;
       }
+  
       setLoading(true);
+      
+      // Extracting weather data
       const temperature = weatherData.main.temp; // °C
       const barometer = weatherData.main.pressure; // hPa
       const wind = weatherData.wind.speed; // m/s
       const cloudiness = weatherData.clouds?.all || 0; // % cloud cover
-
-      const weatherDescription =
-        weatherData.weather[0]?.description.toLowerCase();
+  
+      const weatherDescription = weatherData.weather[0]?.description.toLowerCase();
       const precipitation = weatherDescription.includes("rain") ? 1 : 0;
-
+  
       // Example season logic (adjust as needed)
       const currentMonth = new Date().getMonth() + 1; // Months are 0-indexed
       const seasonSummer = currentMonth >= 3 && currentMonth <= 5 ? 1 : 0;
       const seasonWet = currentMonth >= 6 && currentMonth <= 11 ? 1 : 0;
       const seasonDry = currentMonth === 12 || currentMonth <= 2 ? 1 : 0;
-
+  
       // Define weather-specific features
       const weatherHaze = weatherDescription.includes("haze") ? 1 : 0;
-      const weatherOvercast = weatherDescription.includes("overcast clouds")
-        ? 1
-        : 0;
+      const weatherOvercast = weatherDescription.includes("overcast clouds") ? 1 : 0;
       const passingClouds = cloudiness >= 25 && cloudiness < 50 ? 1 : 0;
       const scatteredClouds = cloudiness >= 50 && cloudiness < 75 ? 1 : 0;
-
+  
+      // Weather and season options
+      const weatherOptions = ["haze", "passing clouds", "scattered clouds", "overcast clouds"];
+      const seasonOptions = ["dry", "summer", "wet"];
+  
+      // Default values for weather and season if not in options
+      const defaultWeather = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];  // Randomly select from options
+      const defaultSeason = "dry";  // You can choose another default season if needed
+  
+      // Check if weather is in the options; if not, set to default
+      const weatherCondition = weatherOptions.includes(weatherDescription) ? weatherDescription : defaultWeather;
+      
+      // Check if season is in the options; if not, set to default
+      const seasonCondition = seasonOptions.includes(weatherDescription) ? weatherDescription : defaultSeason;
+  
+      // Set default values for weather and season
       const payload = {
         Temperature: temperature,
         Wind: wind,
         Precipitation: precipitation,
         Barometer: barometer,
-        Weather_Haze: weatherHaze,
+        Weather_Haze: weatherCondition === "haze" ? weatherHaze : 0,
         Passing_clouds: passingClouds,
         Scattered_clouds: scatteredClouds,
-        Season_Dry: seasonDry,
-        Season_Summer: seasonSummer,
-        Season_Wet: seasonWet,
+        Season_Dry: seasonCondition === "dry" ? 1 : 0,
+        Season_Summer: seasonCondition === "summer" ? 1 : 0,
+        Season_Wet: seasonCondition === "wet" ? 1 : 0,
         Weather_Overcast: weatherOvercast,
         location: address,
       };
+
+
+      
       // console.log("Payload: ", payload);
       const res = await api.post("/predict", payload);
       // const res1 = await api.get("/features");

@@ -157,7 +157,7 @@ const Home = () => {
         return;
       }
 
-      const res = await api.post("/predict", payload);
+      const res = await api.post("/test-predict", payload);
 
       if (!res) {
         alert("Session Expired!");
