@@ -250,6 +250,59 @@ def predict(data: InputData, token: str = Depends(oauth2_scheme)):
         print(f"Error: {e}")
         return {"error": str(e)}
     
+    
+@app.post("/test-predict")
+def predict(data: InputData, token: str = Depends(oauth2_scheme)):
+    try:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get("sub")
+            if username is None:
+                raise HTTPException(status_code=401, detail="Invalid authentication token")
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token has expired")
+        except jwt.JWTError:
+            raise HTTPException(status_code=401, detail="Invalid authentication token")
+        
+        input_dict = data.dict()  # Convert BaseModel to dictionary
+
+        # Create DataFrame from input data
+        df_test = pd.DataFrame([input_dict])
+
+        # Predict fire level
+        fire_columns = [
+            'Precipitation', 'Barometer', 'Temperature', 'Wind', 'Season_Summer',
+            'Scattered_clouds', 'Weather_Haze', 'Season_Wet', 'Passing_clouds',
+            'Season_Dry', 'Weather_Overcast'
+        ]
+        fire_level = rf_fire_level.predict(df_test[fire_columns])[0]
+        fire_level_class = ["Low", "High"]
+        fire_level = int(fire_level)  # Ensure it’s an int
+
+        # Feature engineering for total damage prediction
+        df_test['Log_Wind'] = np.log1p(df_test['Wind'])
+        df_test['Temp_Wind_Interaction'] = df_test['Temperature'] * df_test['Wind']
+        df_test['Precip_Wind_Interaction'] = df_test['Precipitation'] * df_test['Wind']
+        df_test['Log_Precipitation'] = np.log1p(df_test['Precipitation'])
+        df_test['Fire Level'] = fire_level
+        df_test['Barometer (mbar)'] = df_test['Barometer']
+        total_columns = ['Precip_Wind_Interaction', 'Log_Precipitation', 'Temp_Wind_Interaction',
+                         'Barometer (mbar)', 'Season_Summer', 'Season_Dry', 'Log_Wind', 'Fire Level']
+        df_total = df_test[total_columns]
+
+        # Predict total damage
+        df_total_damage = rf_total.predict(df_total)
+        total_damage = np.expm1(df_total_damage[0])  
+
+        return {
+            "fire_level": fire_level_class[fire_level],
+            "total_damage": total_damage
+        }
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"error": str(e)}
+    
 @app.get("/features")
 def get_features(token: str = Depends(oauth2_scheme)):
     try:

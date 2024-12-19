@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-    // baseURL: "https://complexity-3kp9.onrender.com"
-    baseURL: "http://localhost:8000/"
+    baseURL: "https://complexity-3kp9.onrender.com"
+    // baseURL: "http://localhost:8000/"
 });
 
 // Request interceptor to add Authorization header

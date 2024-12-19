@@ -45,7 +45,7 @@ const AuthProvider = ({ children }) => {
     setUser("");
     setToken("");
     localStorage.removeItem("jwt-token");
-
+    window.location.href = '/login'
   };
 
   return (
