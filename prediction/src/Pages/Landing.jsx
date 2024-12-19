@@ -344,13 +344,13 @@ const Landing = () => {
           {/* Prediction Section */}
           {showPrediction && (
             <div className="w-full h-auto flex flex-col md:flex-row items-center justify-center gap-5 px-12 md:px-32 mt-8">
-              <div className="w-full flex-col ">
+{/*               <div className="w-full flex-col ">
                 <div className="font-bold">Accuracy</div>
                 <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
                   <PiTarget className="text-xl" />
                   <span className="flex-1 text-center">{"90%"}</span>{" "}
                 </div>
-              </div>
+              </div> */}
               <div className="w-full flex-col ">
                 <div className="font-bold">Possible Fire Level</div>
                 <div className="bg-white border border-[#d10606] w-full rounded-md p-4 mt-3 text-center font-semibold flex items-center justify-between">
