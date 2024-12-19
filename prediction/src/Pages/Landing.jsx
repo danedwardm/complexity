@@ -31,6 +31,7 @@ const Landing = () => {
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const [showPrediction, setShowPrediction] = useState(false); // Control prediction visibility
   const [showCaptchaModal, setShowCaptchaModal] = useState(false);
+
   const toggleReport = () => setShowReport(!showReport);
   const { user, token, logOut } = useAuth();
   const navigate = useNavigate();

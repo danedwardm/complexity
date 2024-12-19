@@ -58,6 +58,8 @@ def get_db_connection():
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor()
+        cursor.execute("SET TIMEZONE = 'Asia/Manila';")
+        conn.commit()
         return conn, cursor
     except psycopg2.Error as err:
         print(f"Error connecting to the database: {err}")

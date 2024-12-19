@@ -82,7 +82,7 @@ const NavBar = () => {
                   )}
                   <li>
                     <div
-                      onClick={() => logOut()} // Handle the navigation on click
+                      onClick={async () => await logOut()} // Handle the navigation on click
                       className="block px-4 py-2 font-bold text-textSecond hover:text-[#d10606] cursor-pointer"
                     >
                       Logout

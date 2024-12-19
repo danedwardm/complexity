@@ -36,6 +36,12 @@ const AuthProvider = ({ children }) => {
   };
 
   const logOut = () => {
+    const token = localStorage.getItem('jwt-token');
+    if(!token){
+        setUser("");
+       setToken("");      
+       window.location.href = '/login'
+    }
     setUser("");
     setToken("");
     localStorage.removeItem("jwt-token");
